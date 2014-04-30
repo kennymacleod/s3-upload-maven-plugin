@@ -120,7 +120,7 @@ public class S3UploadMojo extends AbstractMojo
     try {
       final TransferProgress progress = transfer.getProgress();
 
-      getLog().info("Transferring " + byteCountToDisplaySize(progress.getTotalBytesToTransfer()) + " to " + String.format("s3://%s/%s", bucketName, destination));
+      getLog().info("Transferring " + byteCountToDisplaySize(progress.getTotalBytesToTransfer()) + " to " + String.format("s3://%s/%s", bucketName, destination) + " in " + s3.getBucketLocation(bucketName));
       transfer.waitForCompletion();
       getLog().info("Transferred " + byteCountToDisplaySize(progress.getBytesTransfered()) + " in " + String.format("%,d ms", (System.currentTimeMillis()-startTime)));
     } catch (InterruptedException e) {
