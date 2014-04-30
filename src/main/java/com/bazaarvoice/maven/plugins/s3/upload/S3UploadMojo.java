@@ -9,12 +9,16 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.transfer.Transfer;
 import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferProgress;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
+
+import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
 
 @Mojo(name = "s3-upload")
 public class S3UploadMojo extends AbstractMojo
@@ -102,6 +106,7 @@ public class S3UploadMojo extends AbstractMojo
 
   private boolean upload(AmazonS3 s3, File sourceFile) throws MojoExecutionException
   {
+    final long startTime = System.currentTimeMillis();
     TransferManager mgr = new TransferManager(s3);
 
     Transfer transfer;
@@ -113,9 +118,11 @@ public class S3UploadMojo extends AbstractMojo
       throw new MojoExecutionException("File is neither a regular file nor a directory " + sourceFile);
     }
     try {
-      getLog().debug("Transferring " + transfer.getProgress().getTotalBytesToTransfer() + " bytes...");
+      final TransferProgress progress = transfer.getProgress();
+
+      getLog().info("Transferring " + byteCountToDisplaySize(progress.getTotalBytesToTransfer()) + " to " + String.format("s3://%s/%s", bucketName, destination));
       transfer.waitForCompletion();
-      getLog().info("Transferred " + transfer.getProgress().getBytesTransfered() + " bytes.");
+      getLog().info("Transferred " + byteCountToDisplaySize(progress.getBytesTransfered()) + " in " + String.format("%,d ms", (System.currentTimeMillis()-startTime)));
     } catch (InterruptedException e) {
       return false;
     }
